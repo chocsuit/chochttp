@@ -18,6 +18,12 @@ public abstract class BaseRequest {
     // ETag
     public String ifNoneMatch;
 
+    // Content-Length
+    public int contentLength=-1;
+
+    // Chunk length
+    public int chunkLength =-1;
+
     public abstract String getRawUrl();
 
     public URL getUrl() throws MalformedURLException {

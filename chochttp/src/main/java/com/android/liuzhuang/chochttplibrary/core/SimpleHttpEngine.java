@@ -8,6 +8,7 @@ import com.android.liuzhuang.chochttplibrary.response.BaseResponse;
 import com.android.liuzhuang.chochttplibrary.utils.CheckUtil;
 import com.android.liuzhuang.chochttplibrary.utils.IOUtils;
 import com.android.liuzhuang.chochttplibrary.utils.Logger;
+import com.android.liuzhuang.chochttplibrary.utils.Timer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,11 +36,16 @@ public class SimpleHttpEngine {
 
     private CacheEngine cacheEngine = new CacheEngine();
 
+    private Timer timer = new Timer();
+
     public BaseResponse sendRequest(BaseRequest request) {
+        timer.start();
+
         BaseResponse response = cacheEngine.createResponse(request.getRawUrl());
         // need not to request server.
         if (!cacheEngine.isExpired(response)) {
             Logger.println("=========get from local========");
+            timer.end("network locally");
             return response;
         }
 
@@ -79,6 +85,7 @@ public class SimpleHttpEngine {
         if (request == null) {
             throw new NullPointerException("request can not be null!");
         }
+        URLConnection connection = null;
         try {
             URL url = request.getUrl();
             if (url == null) {
@@ -87,7 +94,7 @@ public class SimpleHttpEngine {
                 return response;
             }
 
-            URLConnection connection = ConnectionFactory.create(url);
+            connection = ConnectionFactory.create(url);
             wrapConnectionByRequest(connection, request);
 
             connection.setRequestProperty("Accept-Charset", Constant.CHARSET_UTF8);
@@ -98,12 +105,17 @@ public class SimpleHttpEngine {
             response.setStatusCode(-1);
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                ((HttpURLConnection) connection).disconnect();
+            }
         }
 
         return response;
     }
 
     private BaseResponse sendPostRequest(BaseRequest request, BaseResponse response) {
+        URLConnection connection = null;
         try {
             URL url = request.getUrl();
             if (url == null) {
@@ -111,18 +123,19 @@ public class SimpleHttpEngine {
                 response.setStatusCode(-1);
                 return response;
             }
-            String content = request.getParams();
-            String contentType = request.getContentType() == null ?
-                    "application/x-www-form-urlencoded" : request.getContentType().toString();
 
-            URLConnection connection = ConnectionFactory.create(url);
+            connection = ConnectionFactory.create(url);
             wrapConnectionByRequest(connection, request);
 
             connection.setDoOutput(true); // Triggers POST.
             connection.setRequestProperty("Accept-Charset", Constant.CHARSET_UTF8);
+
+            String contentType = request.getContentType() == null ?
+                    "application/x-www-form-urlencoded" : request.getContentType().toString();
             connection.setRequestProperty("Content-Type", contentType + ";charset=" + Constant.CHARSET_UTF8);
 
             OutputStream output = null;
+            String content = request.getParams();
             if (!CheckUtil.isEmpty(content)) {
                 output = connection.getOutputStream();
                 output.write(content.getBytes(Constant.CHARSET_UTF8));
@@ -136,6 +149,10 @@ public class SimpleHttpEngine {
             response.setStatusCode(-1);
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                ((HttpURLConnection) connection).disconnect();
+            }
         }
         return response;
     }
@@ -175,6 +192,7 @@ public class SimpleHttpEngine {
         Logger.println("=========get from remote========");
         Logger.println("responseCode==>>" + respCode);
         IOUtils.closeQuietly(writer, inputStream);
+        timer.end("network remotely");
     }
 
     private void wrapConnectionByRequest(URLConnection connection, BaseRequest request) {
@@ -193,6 +211,12 @@ public class SimpleHttpEngine {
         }
         if (!CheckUtil.isEmpty(request.ifNoneMatch)) {
             connection.setRequestProperty(Constant.HEADER_IF_NONE_MATCH, request.ifNoneMatch);
+        }
+        if (request.contentLength >= 0 && connection instanceof HttpURLConnection) {
+            ((HttpURLConnection) connection).setFixedLengthStreamingMode(request.contentLength);
+        }
+        if (request.chunkLength >= 0 && connection instanceof HttpURLConnection) {
+            ((HttpURLConnection) connection).setChunkedStreamingMode(request.chunkLength);
         }
     }
 }
