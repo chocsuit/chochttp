@@ -19,8 +19,17 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
+import java.security.GeneralSecurityException;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * Based on UrlConnection
@@ -217,6 +226,13 @@ public class SimpleHttpEngine {
         }
         if (request.chunkLength >= 0 && connection instanceof HttpURLConnection) {
             ((HttpURLConnection) connection).setChunkedStreamingMode(request.chunkLength);
+        }
+        if (connection instanceof HttpURLConnection) {
+            try {
+                HttpsSupport.trustAllCerts((HttpURLConnection) connection);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
