@@ -1,5 +1,6 @@
-package com.android.liuzhuang.chochttplibrary;
+package com.android.liuzhuang.chochttplibrary.core;
 
+import com.android.liuzhuang.chochttplibrary.IChocHttpCallback;
 import com.android.liuzhuang.chochttplibrary.request.BaseRequest;
 
 import java.net.MalformedURLException;

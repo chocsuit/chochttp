@@ -1,11 +1,13 @@
 package com.android.liuzhuang.chochttplibrary.response;
 
 import com.android.liuzhuang.chochttplibrary.utils.CheckUtil;
-import com.android.liuzhuang.chochttplibrary.common.Headers;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
+ * The Response.
  * Created by liuzhuang on 16/3/29.
  */
 public class BaseResponse {
@@ -13,14 +15,10 @@ public class BaseResponse {
     /** The status code, when the server can't answer request, it will be -1*/
     private int statusCode;
     private String errorMessage;
-    private Headers headers;
+    private Map<String, List<String>> headers = new HashMap<String, List<String>>();
 
     public String getResponseBody() {
         return responseBody;
-    }
-
-    public Headers getHeaders() {
-        return headers;
     }
 
     public int getStatusCode() {
@@ -44,12 +42,23 @@ public class BaseResponse {
     }
 
     public void addHeader(String key, List<String> value) {
+        // TODO first line has a null key.
         if (CheckUtil.isEmpty(key)) {
             return;
         }
-        if (headers == null) {
-            headers = new Headers();
+        headers.put(key, value);
+    }
+
+    public String getHeader(String key) {
+        return CheckUtil.isEmpty(headers.get(key)) ? null : headers.get(key).get(0);
+    }
+
+    public String getHeaders() {
+        StringBuilder builder = new StringBuilder();
+        for (Map.Entry<String, List<String>> entry :
+                headers.entrySet()) {
+            builder.append(entry.getKey()).append(":").append(entry.getValue().get(0)).append("\n");
         }
-        headers.addHeader(key, value);
+        return builder.toString();
     }
 }

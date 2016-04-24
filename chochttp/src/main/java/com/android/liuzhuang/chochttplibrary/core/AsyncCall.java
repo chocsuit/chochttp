@@ -1,8 +1,9 @@
-package com.android.liuzhuang.chochttplibrary;
+package com.android.liuzhuang.chochttplibrary.core;
 
 import android.os.Handler;
 import android.os.Looper;
 
+import com.android.liuzhuang.chochttplibrary.IChocHttpCallback;
 import com.android.liuzhuang.chochttplibrary.request.BaseRequest;
 import com.android.liuzhuang.chochttplibrary.response.BaseResponse;
 import com.android.liuzhuang.chochttplibrary.utils.CheckUtil;
@@ -13,7 +14,7 @@ import com.google.gson.Gson;
  * The Async Task
  * Created by liuzhuang on 16/3/29.
  */
-public class AsyncCall<T> extends Call{
+public class AsyncCall<T> extends Call {
 
     private boolean hasCancelled = false;
 

@@ -4,7 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/ChocHttp.iml" filepath="$PROJECT_DIR$/ChocHttp.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/chochttplibrary/chochttplibrary.iml" filepath="$PROJECT_DIR$/chochttplibrary/chochttplibrary.iml" />
+      <module fileurl="file://$PROJECT_DIR$/chochttp/chochttp.iml" filepath="$PROJECT_DIR$/chochttp/chochttp.iml" />
     </modules>
   </component>
 </project>

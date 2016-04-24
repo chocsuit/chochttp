@@ -3,6 +3,7 @@ package com.android.liuzhuang.chochttplibrary.utils;
 import java.util.Collection;
 
 /**
+ * Util to check if CharSequence or Collection is empty.
  * Created by liuzhuang on 16/3/25.
  */
 public class CheckUtil {

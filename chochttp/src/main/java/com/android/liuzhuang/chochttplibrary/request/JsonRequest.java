@@ -5,6 +5,7 @@ import com.android.liuzhuang.chochttplibrary.common.Constant;
 import com.android.liuzhuang.chochttplibrary.common.MediaType;
 
 /**
+ * Request in Json Format.
  * Created by liuzhuang on 16/3/29.
  */
 public class JsonRequest extends BaseRequest {

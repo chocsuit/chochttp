@@ -1,6 +1,15 @@
 package com.android.liuzhuang.chochttp.presenter;
 
+import android.os.Looper;
 import android.util.Log;
+
+import com.android.liuzhuang.chochttplibrary.ChocHttp;
+import com.android.liuzhuang.chochttplibrary.IChocHttpCallback;
+import com.android.liuzhuang.chochttplibrary.request.BaseRequest;
+import com.android.liuzhuang.chochttplibrary.request.KeyValueRequest;
+import com.android.liuzhuang.chochttplibrary.request.Method;
+import com.android.liuzhuang.chochttplibrary.response.BaseResponse;
+import com.android.liuzhuang.chochttplibrary.utils.Logger;
 
 import java.io.IOException;
 
@@ -46,6 +55,31 @@ public class NetworkPresenter {
 
             }
         }).start();
+    }
+
+    public void sendByChoc() {
+        BaseRequest request = new KeyValueRequest.Builder()
+                .setUrl("http://http-caching-demo.herokuapp.com/?cache=true")
+                .setMethod(Method.GET)
+                .build();
+        ChocHttp chocHttp = new ChocHttp.Builder().build();
+        chocHttp.asyncRequest(request, new IChocHttpCallback() {
+            @Override
+            public void onSuccess(BaseResponse rawResponse, Object pojoResponse) {
+                Logger.println("========Headers=========");
+                Logger.println(rawResponse.getHeaders());
+                Logger.println("==========Body==========");
+                Logger.println(rawResponse.getResponseBody());
+            }
+
+            public void onError(int statusCode, String errorMessage) {
+                Logger.println(statusCode + "\n" + errorMessage);
+            }
+
+            public void onCanceled(BaseRequest request) {
+                Logger.println("cancel " + request.getRawUrl() + "  " + request.getParams());
+            }
+        });
     }
 
     public interface NetworkService {

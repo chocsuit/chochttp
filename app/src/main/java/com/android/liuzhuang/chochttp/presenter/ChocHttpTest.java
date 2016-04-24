@@ -25,7 +25,7 @@ public class ChocHttpTest {
         params.put("key3", "value3");
         params.put("key4", "value4");
         params.put("key5", "value5");
-        ChocHttp<POJO> chocHttp = new ChocHttp<POJO>();
+        ChocHttp<POJO> chocHttp = new ChocHttp.Builder<POJO>().build();
         List<BaseRequest> requests = new ArrayList<BaseRequest>();
 //        BaseRequest request = new KeyValueRequest.Builder()
 //                .setUrl("http://localhost:8888/")
@@ -36,7 +36,7 @@ public class ChocHttpTest {
 //                .build();
         for (int i = 0; i < 1; i++) {
             BaseRequest request = new KeyValueRequest.Builder()
-                    .setUrl("http://30.10.119.190:8888/")
+                    .setUrl("http://localhost:8888/")
 //                    .setUrl("https://www.baidu.com/")
                     .setMethod(Method.POST)
 //                    .setParams(params)
