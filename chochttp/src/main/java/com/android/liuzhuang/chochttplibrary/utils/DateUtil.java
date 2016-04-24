@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -24,7 +25,7 @@ public class DateUtil {
         DateFormat rfc1123 = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
         rfc1123.setTimeZone(TimeZone.getTimeZone("GMT"));
         Date date = rfc1123.parse(dateStr);
-        Date now = getNow();
+        Date now = rfc1123.parse(getNow());
         if (date.before(now)) {
             return -1;
         } else if (now.before(date)) {
@@ -52,9 +53,11 @@ public class DateUtil {
      * get now in Date format.
      * @return
      */
-    public static Date getNow() {
-        Timestamp stamp = new Timestamp(System.currentTimeMillis());
-        Date date = new Date(stamp.getTime());
-        return date;
+    public static String getNow() {
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat dateFormat = new SimpleDateFormat(
+                "EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        return dateFormat.format(calendar.getTime());
     }
 }

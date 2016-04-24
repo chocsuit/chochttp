@@ -59,7 +59,7 @@ public class NetworkPresenter {
 
     public void sendByChoc() {
         BaseRequest request = new KeyValueRequest.Builder()
-                .setUrl("http://http-caching-demo.herokuapp.com/?cache=true")
+                .setUrl("http://http-caching-demo.herokuapp.com/?etag=true")
                 .setMethod(Method.GET)
                 .build();
         ChocHttp chocHttp = new ChocHttp.Builder().build();

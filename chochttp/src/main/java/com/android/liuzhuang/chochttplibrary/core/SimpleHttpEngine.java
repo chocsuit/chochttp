@@ -6,7 +6,6 @@ import com.android.liuzhuang.chochttplibrary.request.BaseRequest;
 import com.android.liuzhuang.chochttplibrary.request.Method;
 import com.android.liuzhuang.chochttplibrary.response.BaseResponse;
 import com.android.liuzhuang.chochttplibrary.utils.CheckUtil;
-import com.android.liuzhuang.chochttplibrary.utils.DateUtil;
 import com.android.liuzhuang.chochttplibrary.utils.IOUtils;
 import com.android.liuzhuang.chochttplibrary.utils.Logger;
 
@@ -19,7 +18,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
 
@@ -35,10 +33,12 @@ public class SimpleHttpEngine {
         return instance;
     }
 
+    private CacheEngine cacheEngine = new CacheEngine();
+
     public BaseResponse sendRequest(BaseRequest request) {
-        BaseResponse response = CacheEngine.createResponse(request.getRawUrl());
+        BaseResponse response = cacheEngine.createResponse(request.getRawUrl());
         // need not to request server.
-        if (!isExpired(response)) {
+        if (!cacheEngine.isExpired(response)) {
             Logger.println("=========get from local========");
             return response;
         }
@@ -56,40 +56,6 @@ public class SimpleHttpEngine {
             }
         }
         return null;
-    }
-
-    private boolean isExpired(BaseResponse response) {
-        if (response == null) {
-            return true;
-        }
-        String expires = response.getHeader(Constant.HEADER_EXPIRES);
-        String cacheControl = response.getHeader(Constant.HEADER_CACHE_CONTROL);
-        String date = response.getHeader(Constant.HEADER_DATE);
-        try {
-            // if expires after now
-            if (!CheckUtil.isEmpty(expires) && DateUtil.compareToNow(expires) > 0) {
-                return false;
-            }
-            String[] cacheControls = cacheControl.split(",");
-            String prefix = "max-age=";
-            Integer time = 0;
-            for (int i = 0; i < cacheControls.length; i++) {
-                String temp = cacheControls[i].trim();
-                if (temp.contains(prefix)) {
-                    time = Integer.parseInt(temp.substring(prefix.length()));
-                    break;
-                }
-            }
-            // if max-age is smaller than during time
-            if (DateUtil.getMillisFromDate(date) < time * 1000) {
-                return false;
-            }
-        } catch (ParseException e) {
-            e.printStackTrace();
-        } catch (NumberFormatException ne) {
-            ne.printStackTrace();
-        }
-        return true;
     }
 
     private void wrapRequestByCache(BaseRequest request, BaseResponse response) {
@@ -136,7 +102,6 @@ public class SimpleHttpEngine {
 
         return response;
     }
-
 
     private BaseResponse sendPostRequest(BaseRequest request, BaseResponse response) {
         try {
@@ -196,10 +161,10 @@ public class SimpleHttpEngine {
             String responseStr = writer.toString();
             response.setResponseBody(responseStr);
             // cache
-            CacheEngine.save2cache(rawUrl, response);
+            cacheEngine.save2cache(rawUrl, response);
         } else if (respCode == HttpURLConnection.HTTP_NOT_MODIFIED){
             // cache
-            CacheEngine.save2cache(rawUrl, response);
+            cacheEngine.save2cache(rawUrl, response);
         }else if (respCode >= 400) {
             inputStream = ((HttpURLConnection) connection).getErrorStream();
             writer = new StringWriter();
@@ -208,6 +173,7 @@ public class SimpleHttpEngine {
             response.setErrorMessage(errorMsg);
         }
         Logger.println("=========get from remote========");
+        Logger.println("responseCode==>>" + respCode);
         IOUtils.closeQuietly(writer, inputStream);
     }
 

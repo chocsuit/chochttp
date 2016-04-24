@@ -42,14 +42,14 @@ public class BaseResponse {
     }
 
     public void addHeader(String key, List<String> value) {
-        // TODO first line has a null key.
         if (CheckUtil.isEmpty(key)) {
             return;
         }
-        headers.put(key, value);
+        headers.put(key.toLowerCase(), value);
     }
 
     public String getHeader(String key) {
+        key = key.toLowerCase();
         return CheckUtil.isEmpty(headers.get(key)) ? null : headers.get(key).get(0);
     }
 
