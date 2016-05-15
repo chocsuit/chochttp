@@ -32,7 +32,7 @@ public class ChocHttp<T> {
 
     public void asyncRequest(BaseRequest request, IChocHttpCallback<T> callback, Class<T> clazz) {
         if (request == null) {
-            throw new NullPointerException("request can not be null!");
+            throw new NullPointerException("request cannot be null!");
         }
         AsyncCall<T> call = new AsyncCall<T>(request, callback, clazz);
         Dispatcher.getInstance().dispatch(call);

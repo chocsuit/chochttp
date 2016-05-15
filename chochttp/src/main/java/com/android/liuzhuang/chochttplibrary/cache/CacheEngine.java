@@ -12,6 +12,8 @@ import com.android.liuzhuang.chochttplibrary.utils.Logger;
 import com.android.liuzhuang.chochttplibrary.utils.ThreadUtil;
 import com.google.gson.Gson;
 
+import java.io.IOException;
+import java.net.URLEncoder;
 import java.text.ParseException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
@@ -49,10 +51,15 @@ public final class CacheEngine {
                 } else {
                     Application application = ContextHolder.getApplication();
                     if (application != null && !CheckUtil.isEmpty(url)) {
-                        String path = application.getCacheDir() + "/" + url;
-                        Gson gson = new Gson();
-                        String jsonResponse = gson.toJson(response);
-                        FileUtils.writeFile(path, jsonResponse);
+                        try {
+                            String path = application.getCacheDir() + "/" + URLEncoder.encode(url);
+                            Logger.println("save2cache====>>>" + path);
+                            Gson gson = new Gson();
+                            String jsonResponse = gson.toJson(response);
+                            FileUtils.writeFile(path, jsonResponse);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
@@ -62,13 +69,19 @@ public final class CacheEngine {
     public synchronized BaseResponse createResponse(String url) {
         Application application = ContextHolder.getApplication();
         if (application != null) {
-            String path = application.getCacheDir() + "/" + url;
+            String path = application.getCacheDir() + "/" + URLEncoder.encode(url);
+            Logger.println("createResponse====>>>" + path);
             if (FileUtils.checkPath(path)) {
-                String cacheStr = FileUtils.readFile(path);
-                Gson gson = new Gson();
-                BaseResponse baseResponse = gson.fromJson(cacheStr, BaseResponse.class);
-                if (baseResponse != null) {
-                    return baseResponse;
+                try {
+                    String cacheStr = FileUtils.readFile(path);
+                    // TODO: 16/5/15 依赖注入进来, 仿照retrofit
+                    Gson gson = new Gson();
+                    BaseResponse baseResponse = gson.fromJson(cacheStr, BaseResponse.class);
+                    if (baseResponse != null) {
+                        return baseResponse;
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -99,7 +112,7 @@ public final class CacheEngine {
                     }
                 }
                 // if max-age is smaller than during time
-                if (DateUtil.getMillisFromDate(date) < time * 1000) {
+                if (DateUtil.getDuringMillisFromDate(date) < time * 1000) {
                     return false;
                 }
             }

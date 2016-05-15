@@ -1,7 +1,22 @@
 package com.android.liuzhuang.chochttplibrary.utils;
 
+import android.text.TextUtils;
 
-import java.io.*;
+import com.android.liuzhuang.chochttplibrary.utils.CheckUtil;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
@@ -28,7 +43,7 @@ public class FileUtils {
      * @param filePath 文件的绝对路径
      * @return 以默认字符集的方式来读取文件所有内容
      */
-    public static String readFile(String filePath) {
+    public static String readFile(String filePath) throws IOException {
         return readFile(filePath, Charset.defaultCharset().name());
     }
 
@@ -40,7 +55,7 @@ public class FileUtils {
      * @param charsetName 文件读取的字符集方式
      * @return 读取文件的所有内容
      */
-    public static String readFile(String filePath, String charsetName) {
+    public static String readFile(String filePath, String charsetName) throws IOException {
         File file = new File(filePath);
         StringBuilder sb = new StringBuilder();
         if (!file.isFile()) {
@@ -58,8 +73,6 @@ public class FileUtils {
             if (sb.length() > NEW_LINE.length()) {
                 sb.delete(sb.length() - NEW_LINE.length(), sb.length());
             }
-        } catch (IOException e) {
-            throw new RuntimeException("IOException ", e);
         } finally {
             IOUtils.close(reader);
         }
@@ -72,7 +85,7 @@ public class FileUtils {
      * @param filePath
      * @return
      */
-    public static List<String> readFile2List(String filePath) {
+    public static List<String> readFile2List(String filePath) throws IOException {
         return readFile2List(filePath, Charset.defaultCharset().name());
     }
 
@@ -83,7 +96,7 @@ public class FileUtils {
      * @param charsetName
      * @return
      */
-    public static List<String> readFile2List(String filePath, String charsetName) {
+    public static List<String> readFile2List(String filePath, String charsetName) throws IOException {
         File file = new File(filePath);
         List<String> sb = new ArrayList<String>();
         if (!file.isFile()) {
@@ -97,8 +110,6 @@ public class FileUtils {
             while ((line = reader.readLine()) != null) {
                 sb.add(line);
             }
-        } catch (IOException e) {
-            throw new RuntimeException("IOException ", e);
         } finally {
             IOUtils.close(reader);
         }
@@ -108,47 +119,24 @@ public class FileUtils {
     /**
      * 将指定字符串写入到文件中
      *
-     * @param file
-     * @param content
-     * @return
-     */
-    public static boolean writeFile(File file, String content) {
-        return writeFile(file.getAbsoluteFile(), content);
-    }
-
-    /**
-     * 将指定字符串写入到文件中
-     *
      * @param filePath
      * @param content
      * @return
      */
-    public static boolean writeFile(String filePath, String content) {
+    public static boolean writeFile(String filePath, String content) throws IOException {
         return writeFile(filePath, content, false);
     }
 
     /**
      * 将指定字符串写入到文件中
      *
-     * @param file
-     * @param content
-     * @param append
-     * @return
-     */
-    public static boolean writeFile(File file, String content, boolean append) {
-        return writeFile(file.getAbsoluteFile(), content, append);
-    }
-
-    /**
-     * 将指定字符串写入到文件中
-     *
      * @param filePath
      * @param content
      * @param append
      * @return
      */
-    public static boolean writeFile(String filePath, String content, boolean append) {
-        if (CheckUtil.isEmpty(content)) {
+    public static boolean writeFile(String filePath, String content, boolean append) throws IOException {
+        if (TextUtils.isEmpty(content)) {
             return false;
         }
 
@@ -158,8 +146,6 @@ public class FileUtils {
             fileWriter = new FileWriter(filePath, append);
             fileWriter.write(content);
             return true;
-        } catch (IOException e) {
-            throw new RuntimeException("IOException.", e);
         } finally {
             IOUtils.close(fileWriter);
         }
@@ -172,7 +158,7 @@ public class FileUtils {
      * @param stream
      * @return
      */
-    public static boolean writeFile(String filePath, InputStream stream) {
+    public static boolean writeFile(String filePath, InputStream stream) throws IOException {
         return writeFile(filePath, stream, false);
     }
 
@@ -184,7 +170,7 @@ public class FileUtils {
      * @param append
      * @return
      */
-    public static boolean writeFile(String filePath, InputStream stream, boolean append) {
+    public static boolean writeFile(String filePath, InputStream stream, boolean append) throws IOException {
         return writeFile(filePath != null ? new File(filePath) : null, stream, append);
     }
 
@@ -195,24 +181,9 @@ public class FileUtils {
      * @param stream
      * @return
      */
-    public static boolean writeFile(File file, InputStream stream) {
+    public static boolean writeFile(File file, InputStream stream) throws IOException {
         return writeFile(file, stream, false);
     }
-
-//    public static void writeFile(String dir, Throwable throwable) {
-//        File file = new File(dir);
-//        PrintStream ps = null;
-//        try {
-//            ps = new PrintStream(file);
-//            throwable.printStackTrace(ps);
-//        } catch (Exception ex) {
-//            ex.printStackTrace();
-//        } finally {
-//            if (ps != null) {
-//                ps.close();
-//            }
-//        }
-//    }
 
     /**
      * 从输入流中获取字符串，并全部写入到文件中
@@ -222,7 +193,7 @@ public class FileUtils {
      * @param append
      * @return
      */
-    public static boolean writeFile(File file, InputStream stream, boolean append) {
+    public static boolean writeFile(File file, InputStream stream, boolean append) throws IOException {
         OutputStream o = null;
         try {
             createDir(file.getAbsolutePath());
@@ -234,10 +205,6 @@ public class FileUtils {
             }
             o.flush();
             return true;
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException("FileNotFoundException ", e);
-        } catch (IOException e) {
-            throw new RuntimeException("IOException ", e);
         } finally {
             IOUtils.close(o, stream);
         }
@@ -252,7 +219,7 @@ public class FileUtils {
      * @param append
      * @return
      */
-    public static boolean writeFile(String filePath, List<String> list, boolean append) {
+    public static boolean writeFile(String filePath, List<String> list, boolean append) throws IOException {
         if (list == null || list.size() == 0) {
             return false;
         }
@@ -269,8 +236,6 @@ public class FileUtils {
                 fileWriter.write(line);
             }
             return true;
-        } catch (IOException e) {
-            throw new RuntimeException("IOException.", e);
         } finally {
             IOUtils.close(fileWriter);
         }
@@ -282,8 +247,8 @@ public class FileUtils {
      * @param sourceFilePath
      * @param destFilePath
      */
-    public static void moveFile(String sourceFilePath, String destFilePath) {
-        if (CheckUtil.isEmpty(sourceFilePath) || CheckUtil.isEmpty(destFilePath)) {
+    public static void moveFile(String sourceFilePath, String destFilePath) throws IOException {
+        if (TextUtils.isEmpty(sourceFilePath) || TextUtils.isEmpty(destFilePath)) {
             throw new RuntimeException("Both sourceFilePath and destFilePath cannot be null.");
         }
         moveFile(new File(sourceFilePath), new File(destFilePath));
@@ -295,7 +260,7 @@ public class FileUtils {
      * @param srcFile
      * @param destFile
      */
-    public static void moveFile(File srcFile, File destFile) {
+    public static void moveFile(File srcFile, File destFile) throws IOException {
         boolean rename = srcFile.renameTo(destFile);
         if (!rename) {
             copyFile(srcFile.getAbsolutePath(), destFile.getAbsolutePath());
@@ -303,7 +268,7 @@ public class FileUtils {
         }
     }
 
-    public static void copyFile(File src, File des) {
+    public static void copyFile(File src, File des) throws IOException {
         InputStream fi = null;
         OutputStream fo = null;
         try {
@@ -315,8 +280,6 @@ public class FileUtils {
                 fo.write(buf, 0, i);
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
         } finally {
             IOUtils.closeQuietly(fi, fo);
         }
@@ -329,18 +292,19 @@ public class FileUtils {
      * @param destFilePath
      * @return
      */
-    public static boolean copyFile(String sourceFilePath, String destFilePath) {
+    public static boolean copyFile(String sourceFilePath, String destFilePath) throws IOException {
         InputStream inputStream = null;
         try {
             inputStream = new FileInputStream(sourceFilePath);
         } catch (FileNotFoundException e) {
-            throw new RuntimeException("FileNotFoundException ", e);
+            e.printStackTrace();
+            return false;
         }
         return writeFile(destFilePath, inputStream);
     }
 
 
-    public static void copyFolder(String srcDir, String desDir) {
+    public static void copyFolder(String srcDir, String desDir) throws IOException {
         createFolder(desDir);
         File[] files = (new File(srcDir)).listFiles();
         if (files == null || files.length == 0) {
@@ -362,7 +326,7 @@ public class FileUtils {
      * <p/>
      * 通过该方式复制文件文件越大速度越是明显
      */
-    public static boolean copyByChannel(String source, String target) {
+    public static boolean copyByChannel(String source, String target) throws IOException {
         FileInputStream fin = null;
         FileOutputStream fout = null;
         FileChannel in = null;
@@ -382,8 +346,6 @@ public class FileUtils {
                 //准备读取。将缓冲区清理完毕，移动文件内部指针
                 buffer.clear();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         } finally {
             IOUtils.closeQuietly(in, out, fin, fout);
         }
@@ -398,7 +360,7 @@ public class FileUtils {
      */
     public static String getFolderName(String filePath) {
 
-        if (CheckUtil.isEmpty(filePath)) {
+        if (TextUtils.isEmpty(filePath)) {
             return filePath;
         }
 
@@ -413,7 +375,7 @@ public class FileUtils {
      * @return
      */
     public static String getFileName(String filePath) {
-        if (CheckUtil.isEmpty(filePath)) {
+        if (TextUtils.isEmpty(filePath)) {
             return filePath;
         }
 
@@ -428,10 +390,10 @@ public class FileUtils {
      * @return
      */
     public static String getExtension(String filePath) {
-        if (CheckUtil.isEmpty(filePath)) {
+        if (TextUtils.isEmpty(filePath)) {
             return filePath;
         }
-        
+
         int exPos = filePath.lastIndexOf(DOT);
         if (exPos == -1) {
             return "";
@@ -447,7 +409,7 @@ public class FileUtils {
      * @return
      */
     public static String getFileNameWithoutExtension(String filePath) {
-        if (CheckUtil.isEmpty(filePath)) {
+        if (TextUtils.isEmpty(filePath)) {
             return filePath;
         }
 
@@ -475,7 +437,7 @@ public class FileUtils {
      */
     public static boolean createDir(String filePath) {
         String folderName = getFolderName(filePath);
-        if (CheckUtil.isEmpty(folderName)) {
+        if (TextUtils.isEmpty(folderName)) {
             return false;
         }
 
@@ -608,6 +570,7 @@ public class FileUtils {
         String[] folders = new File(dir).list(
                 new FilenameFilter() {
 
+                    @Override
                     public boolean accept(File dir, String filename) {
                         return new File(dir, filename).isDirectory();
                     }
@@ -629,6 +592,7 @@ public class FileUtils {
         String[] files = new File(dir).list(
                 new FilenameFilter() {
 
+                    @Override
                     public boolean accept(File dir, String filename) {
                         return new File(dir, filename).isFile();
                     }

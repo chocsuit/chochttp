@@ -1,8 +1,5 @@
 package com.android.liuzhuang.chochttp.presenter;
 
-import android.os.Looper;
-import android.util.Log;
-
 import com.android.liuzhuang.chochttplibrary.ChocHttp;
 import com.android.liuzhuang.chochttplibrary.IChocHttpCallback;
 import com.android.liuzhuang.chochttplibrary.request.BaseRequest;
@@ -11,82 +8,52 @@ import com.android.liuzhuang.chochttplibrary.request.Method;
 import com.android.liuzhuang.chochttplibrary.response.BaseResponse;
 import com.android.liuzhuang.chochttplibrary.utils.Logger;
 
-import java.io.IOException;
-
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Retrofit;
-import retrofit2.http.GET;
-import retrofit2.http.Path;
-
 /**
  * Created by liuzhuang on 16/3/24.
  */
 public class NetworkPresenter {
 //    public static final String url = "http://goodog.top:8888/";
 
-    public void sendByOkHttp() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    OkHttpContributors.main();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-    }
+    private NetworkCallback callback;
 
-    public void sendByRetrofit() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Retrofit retrofit = new Retrofit.Builder()
-                        .baseUrl("https://api.github.com/")
-                        .build();
-                NetworkService service = retrofit.create(NetworkService.class);
-                Call<ResponseBody> res = service.listRepos("helloyingying");
-                try {
-                    Log.d("response: ", res.execute().body().toString());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        }).start();
+    public void setCallback(NetworkCallback callback) {
+        this.callback = callback;
     }
 
     public void sendByChoc() {
-        BaseRequest request = new KeyValueRequest.Builder()
+        final BaseRequest request = new KeyValueRequest.Builder()
 //                .setUrl("http://30.10.112.22:8080")
-                .setUrl("https://www.baidu.com/")
-//                .setUrl("http://http-caching-demo.herokuapp.com/?etag=true")
+                .setUrl("https://kyfw.12306.cn/")
+//                .setUrl("https://www.baidu.com")
+//                .setUrl("http://http-caching-demo.herokuapp.com/?etag=true&cache=true, ")
                 .setMethod(Method.GET)
                 .build();
         ChocHttp chocHttp = new ChocHttp.Builder().build();
         chocHttp.asyncRequest(request, new IChocHttpCallback() {
             @Override
             public void onSuccess(BaseResponse rawResponse, Object pojoResponse) {
-                Logger.println("========Headers=========");
-                Logger.println(rawResponse.getHeaders());
-                Logger.println("==========Body==========");
-                Logger.println(rawResponse.getResponseBody());
+                StringBuilder builder = new StringBuilder();
+                builder.append("========URL=========\n")
+                        .append(request.getRawUrl())
+                        .append("\n========Headers=========\n")
+                        .append(rawResponse.getHeaders())
+                        .append("\n==========Body==========\n")
+                        .append(rawResponse.getResponseBody());
+                if (callback != null) {
+                    callback.onSuccess(builder.toString());
+                }
             }
 
             public void onError(int statusCode, String errorMessage) {
-                Logger.println(statusCode + "\n" + errorMessage);
+                if (callback != null) {
+                    callback.onError(statusCode + "\n" + errorMessage);
+                }
             }
 
             public void onCanceled(BaseRequest request) {
                 Logger.println("cancel " + request.getRawUrl() + "  " + request.getParams());
             }
         });
-    }
-
-    public interface NetworkService {
-        @GET("users/{user}/repos")
-        Call<ResponseBody> listRepos(@Path("user") String user);
     }
 
     public static interface NetworkCallback{

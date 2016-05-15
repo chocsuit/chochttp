@@ -6,6 +6,7 @@ import com.android.liuzhuang.chochttplibrary.request.BaseRequest;
 import com.android.liuzhuang.chochttplibrary.request.Method;
 import com.android.liuzhuang.chochttplibrary.response.BaseResponse;
 import com.android.liuzhuang.chochttplibrary.utils.CheckUtil;
+import com.android.liuzhuang.chochttplibrary.utils.DateUtil;
 import com.android.liuzhuang.chochttplibrary.utils.IOUtils;
 import com.android.liuzhuang.chochttplibrary.utils.Logger;
 import com.android.liuzhuang.chochttplibrary.utils.Timer;
@@ -19,17 +20,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
-import java.security.GeneralSecurityException;
-import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
+import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
-
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 /**
  * Based on UrlConnection
@@ -213,8 +206,8 @@ public class SimpleHttpEngine {
         }
         if (!CheckUtil.isEmpty(request.ifModifiedSince)) {
             try {
-                connection.setIfModifiedSince(Long.parseLong(request.ifModifiedSince.trim()));
-            } catch (NumberFormatException e) {
+                connection.setIfModifiedSince(DateUtil.getDate(request.ifModifiedSince));
+            } catch (ParseException e) {
                 e.printStackTrace();
             }
         }
@@ -226,13 +219,6 @@ public class SimpleHttpEngine {
         }
         if (request.chunkLength >= 0 && connection instanceof HttpURLConnection) {
             ((HttpURLConnection) connection).setChunkedStreamingMode(request.chunkLength);
-        }
-        if (connection instanceof HttpURLConnection) {
-            try {
-                HttpsSupport.trustAllCerts((HttpURLConnection) connection);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 }

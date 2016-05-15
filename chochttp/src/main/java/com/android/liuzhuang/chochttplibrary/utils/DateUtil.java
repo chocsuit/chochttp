@@ -41,12 +41,25 @@ public class DateUtil {
      * @return the during time in millis.
      * @throws ParseException
      */
-    public static long getMillisFromDate(String dateStr) throws ParseException {
+    public static long getDuringMillisFromDate(String dateStr) throws ParseException {
         DateFormat rfc1123 = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
         rfc1123.setTimeZone(TimeZone.getTimeZone("GMT"));
         Date date = rfc1123.parse(dateStr);
         long now = System.currentTimeMillis();
         return now - date.getTime();
+    }
+
+    /**
+     * Get Date in millis format.
+     * @param dateStr
+     * @return
+     * @throws ParseException
+     */
+    public static long getDate(String dateStr) throws ParseException {
+        DateFormat rfc1123 = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
+        rfc1123.setTimeZone(TimeZone.getTimeZone("GMT"));
+        Date date = rfc1123.parse(dateStr);
+        return date.getTime();
     }
 
     /**

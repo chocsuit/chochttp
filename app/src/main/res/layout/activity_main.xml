@@ -17,30 +17,20 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="60dp"
-            android:text="okhttp"
-            android:onClick="onClick"
-            android:id="@+id/okhttp"/>
-        <Button
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="60dp"
-            android:onClick="onClick"
-            android:text="retrofit"
-            android:id="@+id/retrofit"/>
-        <Button
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="60dp"
             android:onClick="onClick"
             android:text="choc"
             android:id="@+id/choc"/>
     </LinearLayout>
-    <TextView
-        android:layout_width="wrap_content"
+    <ScrollView
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/btn_layout"
-        android:layout_marginTop="12dp"
-        android:id="@+id/response"
-        android:textSize="14sp"
-        android:text="Your response will be displayed here!"/>
+        android:layout_marginTop="12dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/response"
+            android:textSize="14sp"
+            android:text="Your response will be displayed here!"/>
+    </ScrollView>
 </RelativeLayout>
