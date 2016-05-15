@@ -2,6 +2,7 @@ package com.android.liuzhuang.chochttplibrary.response;
 
 import com.android.liuzhuang.chochttplibrary.utils.CheckUtil;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,7 +11,9 @@ import java.util.Map;
  * The Response.
  * Created by liuzhuang on 16/3/29.
  */
-public class BaseResponse {
+public class BaseResponse implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private String responseBody;
     /** The status code, when the server can't answer request, it will be -1*/
     private int statusCode;

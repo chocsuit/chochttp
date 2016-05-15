@@ -12,6 +12,7 @@ import java.net.MalformedURLException;
 public abstract class Call implements Runnable {
     protected BaseRequest request;
     protected IChocHttpCallback callback;
+    protected Converter.Factory converterFactory;
 
     public Call(BaseRequest request, IChocHttpCallback callback) {
         this.request = request;
@@ -33,6 +34,9 @@ public abstract class Call implements Runnable {
         return "";
     }
 
-    public abstract void cancel();
+    public void setConverterFactory(Converter.Factory converterFactory) {
+        this.converterFactory = converterFactory;
+    }
 
+    public abstract void cancel();
 }

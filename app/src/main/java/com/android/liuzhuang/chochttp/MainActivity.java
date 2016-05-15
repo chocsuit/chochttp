@@ -26,6 +26,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         if (v.getId() == R.id.choc) {
             presenter.sendByChoc();
+        } else if (v.getId() == R.id.json) {
+            presenter.sendByChocWithJson();
         }
     }
 

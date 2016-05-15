@@ -25,7 +25,7 @@ public class ChocHttpTest {
         params.put("key3", "value3");
         params.put("key4", "value4");
         params.put("key5", "value5");
-        ChocHttp<POJO> chocHttp = new ChocHttp.Builder<POJO>().build();
+        ChocHttp chocHttp = new ChocHttp.Builder().build();
         List<BaseRequest> requests = new ArrayList<BaseRequest>();
 //        BaseRequest request = new KeyValueRequest.Builder()
 //                .setUrl("http://localhost:8888/")
@@ -42,10 +42,9 @@ public class ChocHttpTest {
 //                    .setParams(params)
                     .addParam("key" + i, "value" + i)
                     .build();
-            chocHttp.asyncRequest(request, new IChocHttpCallback<POJO>() {
-                public void onSuccess(BaseResponse rawResponse, POJO pojoResponse) {
+            chocHttp.asyncRequest(request, new IChocHttpCallback() {
+                public void onSuccess(BaseResponse rawResponse, Object pojoResponse) {
                     Logger.println(rawResponse.getResponseBody());
-                    Logger.println(pojoResponse.key0);
                 }
 
                 public void onError(int statusCode, String errorMessage) {

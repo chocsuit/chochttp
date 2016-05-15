@@ -16,6 +16,8 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -114,6 +116,34 @@ public class FileUtils {
             IOUtils.close(reader);
         }
         return sb;
+    }
+
+    public static Object readObjectFromFile(String filePath) throws IOException, ClassNotFoundException {
+        ObjectInputStream objectinputstream = null;
+        FileInputStream streamIn = null;
+        Object readCase = null;
+        try {
+            streamIn = new FileInputStream(filePath);
+            objectinputstream = new ObjectInputStream(streamIn);
+            readCase = objectinputstream.readObject();
+        } finally {
+            IOUtils.closeQuietly(objectinputstream, streamIn);
+        }
+        return readCase;
+    }
+
+
+    public static boolean writeFile(String filePath, Object object) throws IOException {
+        FileOutputStream fout = null;
+        ObjectOutputStream oos = null;
+        try {
+            fout = new FileOutputStream(filePath);
+            oos = new ObjectOutputStream(fout);
+            oos.writeObject(object);
+            return true;
+        } finally {
+            IOUtils.closeQuietly(fout, oos);
+        }
     }
 
     /**

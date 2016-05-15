@@ -18,8 +18,16 @@
             android:layout_weight="1"
             android:layout_height="60dp"
             android:onClick="onClick"
-            android:text="choc"
+            android:text="RAW"
             android:id="@+id/choc"/>
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="60dp"
+            android:onClick="onClick"
+            android:text="JSON"
+            android:id="@+id/json"/>
     </LinearLayout>
     <ScrollView
         android:layout_width="match_parent"

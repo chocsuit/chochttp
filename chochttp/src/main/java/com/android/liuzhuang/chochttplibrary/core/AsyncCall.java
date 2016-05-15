@@ -7,26 +7,25 @@ import com.android.liuzhuang.chochttplibrary.IChocHttpCallback;
 import com.android.liuzhuang.chochttplibrary.request.BaseRequest;
 import com.android.liuzhuang.chochttplibrary.response.BaseResponse;
 import com.android.liuzhuang.chochttplibrary.utils.CheckUtil;
-import com.google.gson.Gson;
 
 
 /**
  * The Async Task
  * Created by liuzhuang on 16/3/29.
  */
-public class AsyncCall<T> extends Call {
+public class AsyncCall extends Call {
 
     private boolean hasCancelled = false;
 
     private ICallFinishListener listener;
 
-    private Class<T> outPOJOClass;
-
     private Handler handler;
 
-    public AsyncCall(BaseRequest request, IChocHttpCallback callback, Class<T> outPOJOClass) {
+    private Class clazz;
+
+    public AsyncCall(BaseRequest request, IChocHttpCallback callback, Class clazz) {
         super(request, callback);
-        this.outPOJOClass = outPOJOClass;
+        this.clazz = clazz;
         handler = new Handler(Looper.getMainLooper());
     }
 
@@ -37,10 +36,12 @@ public class AsyncCall<T> extends Call {
                 if (callback != null) {
                     if (CheckUtil.isEmpty(response.getErrorMessage())) {
                         /** callback will be handled on Main Thread*/
-                        if (outPOJOClass != null) {
-                            Gson gson = new Gson();
-                            final T pojo = gson.fromJson(response.getResponseBody(), outPOJOClass);
-                            handleOnSuccess(response, pojo);
+                        if (converterFactory != null && clazz != null) {
+                            Converter converter = converterFactory.responseBodyConverter(clazz);
+                            if (converter != null) {
+                                final Object pojo = converter.convert(response.getResponseBody());
+                                handleOnSuccess(response, pojo);
+                            }
                         } else {
                             handleOnSuccess(response, null);
                         }
@@ -73,7 +74,7 @@ public class AsyncCall<T> extends Call {
         }
     }
 
-    private void handleOnSuccess(final BaseResponse rawResponse, final T pojo) {
+    private void handleOnSuccess(final BaseResponse rawResponse, final Object pojo) {
         if (callback == null || rawResponse == null) {
             return;
         }

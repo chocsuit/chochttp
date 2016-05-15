@@ -10,7 +10,6 @@ import com.android.liuzhuang.chochttplibrary.utils.DateUtil;
 import com.android.liuzhuang.chochttplibrary.utils.FileUtils;
 import com.android.liuzhuang.chochttplibrary.utils.Logger;
 import com.android.liuzhuang.chochttplibrary.utils.ThreadUtil;
-import com.google.gson.Gson;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -54,9 +53,7 @@ public final class CacheEngine {
                         try {
                             String path = application.getCacheDir() + "/" + URLEncoder.encode(url);
                             Logger.println("save2cache====>>>" + path);
-                            Gson gson = new Gson();
-                            String jsonResponse = gson.toJson(response);
-                            FileUtils.writeFile(path, jsonResponse);
+                            FileUtils.writeFile(path, response);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -73,14 +70,13 @@ public final class CacheEngine {
             Logger.println("createResponse====>>>" + path);
             if (FileUtils.checkPath(path)) {
                 try {
-                    String cacheStr = FileUtils.readFile(path);
-                    // TODO: 16/5/15 依赖注入进来, 仿照retrofit
-                    Gson gson = new Gson();
-                    BaseResponse baseResponse = gson.fromJson(cacheStr, BaseResponse.class);
-                    if (baseResponse != null) {
-                        return baseResponse;
+                    Object cacheObj = FileUtils.readObjectFromFile(path);
+                    if (cacheObj != null && cacheObj instanceof BaseResponse) {
+                        return (BaseResponse) cacheObj;
                     }
                 } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (ClassNotFoundException e) {
                     e.printStackTrace();
                 }
             }
