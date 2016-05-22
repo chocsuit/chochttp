@@ -4,6 +4,7 @@ import android.app.Application;
 
 import com.android.liuzhuang.chochttplibrary.ContextHolder;
 import com.android.liuzhuang.chochttplibrary.common.Constant;
+import com.android.liuzhuang.chochttplibrary.core.ChocConfig;
 import com.android.liuzhuang.chochttplibrary.response.BaseResponse;
 import com.android.liuzhuang.chochttplibrary.utils.CheckUtil;
 import com.android.liuzhuang.chochttplibrary.utils.DateUtil;
@@ -36,8 +37,9 @@ public final class CacheEngine {
     }
 
 
-    public synchronized void save2cache(final String url, final BaseResponse response) {
-        if (response == null || CheckUtil.isEmpty(url)) {
+    public synchronized void save2cache(final String url, final BaseResponse response, ChocConfig config) {
+        if (response == null || CheckUtil.isEmpty(url) || (config != null && config.isDisableCache())) {
+            Logger.println("save to cache error!");
             return;
         }
         executorService().execute(new Runnable() {

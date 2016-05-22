@@ -1,6 +1,6 @@
 package com.android.liuzhuang.chochttplibrary.core;
 
-import com.android.liuzhuang.chochttplibrary.IChocHttpCallback;
+import com.android.liuzhuang.chochttplibrary.ChocHttpListener;
 import com.android.liuzhuang.chochttplibrary.request.BaseRequest;
 
 import java.net.MalformedURLException;
@@ -11,10 +11,11 @@ import java.net.MalformedURLException;
  */
 public abstract class Call implements Runnable {
     protected BaseRequest request;
-    protected IChocHttpCallback callback;
+    protected ChocHttpListener callback;
     protected Converter.Factory converterFactory;
+    protected ChocConfig config;
 
-    public Call(BaseRequest request, IChocHttpCallback callback) {
+    public Call(BaseRequest request, ChocHttpListener callback) {
         this.request = request;
         this.callback = callback;
     }
@@ -23,19 +24,12 @@ public abstract class Call implements Runnable {
         return request;
     }
 
-    public String getHost() {
-        try {
-            if (request != null && request.getUrl() != null) {
-                return request.getUrl().getHost();
-            }
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-        return "";
-    }
-
     public void setConverterFactory(Converter.Factory converterFactory) {
         this.converterFactory = converterFactory;
+    }
+
+    public void setConfig(ChocConfig config) {
+        this.config = config;
     }
 
     public abstract void cancel();

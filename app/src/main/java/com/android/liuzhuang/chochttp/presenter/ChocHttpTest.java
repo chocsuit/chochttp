@@ -1,7 +1,7 @@
 package com.android.liuzhuang.chochttp.presenter;
 
 import com.android.liuzhuang.chochttplibrary.ChocHttp;
-import com.android.liuzhuang.chochttplibrary.IChocHttpCallback;
+import com.android.liuzhuang.chochttplibrary.ChocHttpListener;
 import com.android.liuzhuang.chochttplibrary.request.BaseRequest;
 import com.android.liuzhuang.chochttplibrary.request.KeyValueRequest;
 import com.android.liuzhuang.chochttplibrary.request.Method;
@@ -42,7 +42,7 @@ public class ChocHttpTest {
 //                    .setParams(params)
                     .addParam("key" + i, "value" + i)
                     .build();
-            chocHttp.asyncRequest(request, new IChocHttpCallback() {
+            chocHttp.asyncRequest(request, new ChocHttpListener() {
                 public void onSuccess(BaseResponse rawResponse, Object pojoResponse) {
                     Logger.println(rawResponse.getResponseBody());
                 }

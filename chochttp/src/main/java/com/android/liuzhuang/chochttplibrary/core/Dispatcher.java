@@ -4,6 +4,7 @@ import com.android.liuzhuang.chochttplibrary.request.BaseRequest;
 import com.android.liuzhuang.chochttplibrary.utils.Logger;
 import com.android.liuzhuang.chochttplibrary.utils.ThreadUtil;
 
+import java.net.MalformedURLException;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -74,9 +75,25 @@ public final class Dispatcher implements ICallFinishListener {
     private int runningCallsForHost(AsyncCall call) {
         int result = 0;
         for (AsyncCall c : runningAsyncCalls) {
-            if (c.getHost().equals(call.getHost())) result++;
+            if (getHostFromCall(call).equals(getHostFromCall(call))) result++;
         }
         return result;
+    }
+
+    /**
+     * get host name from call.
+     * @param call
+     * @return
+     */
+    private String getHostFromCall(Call call) {
+        try {
+            if (call != null && call.getRequest() != null && call.getRequest().getUrl() != null) {
+                return call.getRequest().getUrl().getHost();
+            }
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 
     /**

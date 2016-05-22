@@ -22,11 +22,12 @@ import javax.net.ssl.X509TrustManager;
  * Created by liuzhuang on 16/3/30.
  */
 public final class ConnectionFactory {
-    public static URLConnection create(URL url) throws IOException {
+    public static URLConnection create(URL url, ChocConfig config) throws IOException {
         if (url == null) {
             throw new NullPointerException("url cannot be null");
         }
-        if (url.getProtocol().equalsIgnoreCase("https")) {
+        if (url.getProtocol().equalsIgnoreCase("https") && config != null
+                && config.isTrustAllCertification()) {
             trustAllCertificates();
         }
         return url.openConnection();

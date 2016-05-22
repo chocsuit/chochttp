@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringWriter;
-import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -40,50 +39,63 @@ public class SimpleHttpEngine {
 
     private Timer timer = new Timer();
 
-    public BaseResponse sendRequest(BaseRequest request) {
+    public BaseResponse sendRequest(BaseRequest request, ChocConfig config) {
         timer.start();
 
-        BaseResponse response = cacheEngine.createResponse(request.getRawUrl());
-        // need not to request server.
-        if (!cacheEngine.isExpired(response)) {
-            Logger.println("=========get from local========");
-            timer.end("network locally");
-            return response;
+        if (config == null) {
+            config = new ChocConfig();
         }
 
-        wrapRequestByCache(request, response);
+        BaseResponse response = null;
+        if (!config.isDisableCache()) {
+            response = cacheEngine.createResponse(request.getRawUrl());
+            // need not to request server.
+            if (!cacheEngine.isExpired(response)) {
+                Logger.println("=========get from local========");
+                timer.end("network locally");
+                return response;
+            }
+            wrapRequestByCache(request, response);
+        }
 
         if (response == null) {
             response = new BaseResponse();
         }
-        if (request.getMethod() != null) {
-            if (request.getMethod() == Method.GET) {
-                return sendGetRequest(request, response);
-            } else if (request.getMethod() == Method.POST) {
-                return sendPostRequest(request, response);
+        return execute(request, response, config, 0);
+    }
+
+    private BaseResponse execute(BaseRequest request, BaseResponse response, ChocConfig config, int retryTime) {
+        try {
+            if (request.getMethod() != null) {
+                if (request.getMethod() == Method.GET) {
+                    return sendGetRequest(request, response, config);
+                } else if (request.getMethod() == Method.POST) {
+                    return sendPostRequest(request, response, config);
+                }
+            } else {
+                throw new NullPointerException("Method cannot be null!");
+            }
+        } catch (IOException e) {
+            if (retryTime < config.getRetryTimes()) {
+                retryTime++;
+                Logger.println("retry " + retryTime);
+                // wait for a while.
+                try {
+                    Thread.sleep(config.getRetryInterval());
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+                return execute(request, response, config, retryTime);
+            } else {
+                response.setErrorMessage(e.getMessage());
+                response.setStatusCode(-1);
+                return response;
             }
         }
         return null;
     }
 
-    private void wrapRequestByCache(BaseRequest request, BaseResponse response) {
-        if (response == null) {
-            return;
-        }
-        if (request == null) {
-            throw new NullPointerException("request or response can not be null!");
-        }
-        String lastModified = response.getHeader(Constant.HEADER_LAST_MODIFIED);
-        if (!CheckUtil.isEmpty(lastModified)) {
-            request.ifModifiedSince = lastModified;
-        }
-        String etag = response.getHeader(Constant.HEADER_ETAG);
-        if (!CheckUtil.isEmpty(etag)) {
-            request.ifNoneMatch = etag;
-        }
-    }
-
-    private BaseResponse sendGetRequest(BaseRequest request, BaseResponse response) {
+    private BaseResponse sendGetRequest(BaseRequest request, BaseResponse response, ChocConfig config) throws IOException {
         if (request == null) {
             throw new NullPointerException("request can not be null!");
         }
@@ -96,17 +108,13 @@ public class SimpleHttpEngine {
                 return response;
             }
 
-            connection = ConnectionFactory.create(url);
+            connection = ConnectionFactory.create(url, config);
             wrapConnectionByRequest(connection, request);
+            wrapConnectionByConfig(connection, config);
 
             connection.setRequestProperty("Accept-Charset", Constant.CHARSET_UTF8);
 
-            handleResponse(request.getRawUrl(), response, connection);
-        } catch (ConnectException e) {
-            response.setErrorMessage("Connection refused");
-            response.setStatusCode(-1);
-        } catch (IOException e) {
-            e.printStackTrace();
+            handleResponse(request.getRawUrl(), response, connection, config);
         } finally {
             if (connection != null) {
                 ((HttpURLConnection) connection).disconnect();
@@ -116,7 +124,7 @@ public class SimpleHttpEngine {
         return response;
     }
 
-    private BaseResponse sendPostRequest(BaseRequest request, BaseResponse response) {
+    private BaseResponse sendPostRequest(BaseRequest request, BaseResponse response, ChocConfig config) throws IOException {
         URLConnection connection = null;
         try {
             URL url = request.getUrl();
@@ -126,8 +134,9 @@ public class SimpleHttpEngine {
                 return response;
             }
 
-            connection = ConnectionFactory.create(url);
+            connection = ConnectionFactory.create(url, config);
             wrapConnectionByRequest(connection, request);
+            wrapConnectionByConfig(connection, config);
 
             connection.setDoOutput(true); // Triggers POST.
             connection.setRequestProperty("Accept-Charset", Constant.CHARSET_UTF8);
@@ -143,14 +152,9 @@ public class SimpleHttpEngine {
                 output.write(content.getBytes(Constant.CHARSET_UTF8));
             }
 
-            handleResponse(request.getRawUrl(), response, connection);
+            handleResponse(request.getRawUrl(), response, connection, config);
 
             IOUtils.closeQuietly(output);
-        } catch (ConnectException e) {
-            response.setErrorMessage("Connection refused");
-            response.setStatusCode(-1);
-        } catch (IOException e) {
-            e.printStackTrace();
         } finally {
             if (connection != null) {
                 ((HttpURLConnection) connection).disconnect();
@@ -159,7 +163,7 @@ public class SimpleHttpEngine {
         return response;
     }
 
-    private void handleResponse(String rawUrl, BaseResponse response, URLConnection connection) throws IOException {
+    private void handleResponse(String rawUrl, BaseResponse response, URLConnection connection, ChocConfig config) throws IOException {
         // store header
         for (Map.Entry<String, List<String>> header : connection.getHeaderFields().entrySet()) {
             response.addHeader(header.getKey(), header.getValue());
@@ -180,10 +184,10 @@ public class SimpleHttpEngine {
             String responseStr = writer.toString();
             response.setResponseBody(responseStr);
             // cache
-            cacheEngine.save2cache(rawUrl, response);
+            cacheEngine.save2cache(rawUrl, response, config);
         } else if (respCode == HttpURLConnection.HTTP_NOT_MODIFIED){
             // cache
-            cacheEngine.save2cache(rawUrl, response);
+            cacheEngine.save2cache(rawUrl, response, config);
         }else if (respCode >= 400) {
             inputStream = ((HttpURLConnection) connection).getErrorStream();
             writer = new StringWriter();
@@ -195,6 +199,23 @@ public class SimpleHttpEngine {
         Logger.println("responseCode==>>" + respCode);
         IOUtils.closeQuietly(writer, inputStream);
         timer.end("network remotely");
+    }
+
+    private void wrapRequestByCache(BaseRequest request, BaseResponse response) {
+        if (response == null) {
+            return;
+        }
+        if (request == null) {
+            throw new NullPointerException("request or response can not be null!");
+        }
+        String lastModified = response.getHeader(Constant.HEADER_LAST_MODIFIED);
+        if (!CheckUtil.isEmpty(lastModified)) {
+            request.ifModifiedSince = lastModified;
+        }
+        String etag = response.getHeader(Constant.HEADER_ETAG);
+        if (!CheckUtil.isEmpty(etag)) {
+            request.ifNoneMatch = etag;
+        }
     }
 
     private void wrapConnectionByRequest(URLConnection connection, BaseRequest request) {
@@ -220,5 +241,13 @@ public class SimpleHttpEngine {
         if (request.chunkLength >= 0 && connection instanceof HttpURLConnection) {
             ((HttpURLConnection) connection).setChunkedStreamingMode(request.chunkLength);
         }
+    }
+
+    private void wrapConnectionByConfig(URLConnection connection, ChocConfig config) {
+        if (connection == null || config == null) {
+            return;
+        }
+        connection.setConnectTimeout(config.getConnectTimeOut());
+        connection.setReadTimeout(config.getReadTimeOut());
     }
 }

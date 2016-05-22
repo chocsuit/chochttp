@@ -15,7 +15,7 @@ public class BaseResponse implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String responseBody;
-    /** The status code, when the server can't answer request, it will be -1*/
+    /** The status code, when error occurs, it will be -1*/
     private int statusCode;
     private String errorMessage;
     private Map<String, List<String>> headers = new HashMap<String, List<String>>();

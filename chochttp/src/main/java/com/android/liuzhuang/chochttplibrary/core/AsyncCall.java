@@ -3,7 +3,7 @@ package com.android.liuzhuang.chochttplibrary.core;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.android.liuzhuang.chochttplibrary.IChocHttpCallback;
+import com.android.liuzhuang.chochttplibrary.ChocHttpListener;
 import com.android.liuzhuang.chochttplibrary.request.BaseRequest;
 import com.android.liuzhuang.chochttplibrary.response.BaseResponse;
 import com.android.liuzhuang.chochttplibrary.utils.CheckUtil;
@@ -23,7 +23,7 @@ public class AsyncCall extends Call {
 
     private Class clazz;
 
-    public AsyncCall(BaseRequest request, IChocHttpCallback callback, Class clazz) {
+    public AsyncCall(BaseRequest request, ChocHttpListener callback, Class clazz) {
         super(request, callback);
         this.clazz = clazz;
         handler = new Handler(Looper.getMainLooper());
@@ -31,7 +31,7 @@ public class AsyncCall extends Call {
 
     public void run() {
         if (!hasCancelled) {
-            final BaseResponse response = SimpleHttpEngine.getInstance().sendRequest(request);
+            final BaseResponse response = SimpleHttpEngine.getInstance().sendRequest(request, config);
             if (!hasCancelled) {
                 if (callback != null) {
                     if (CheckUtil.isEmpty(response.getErrorMessage())) {

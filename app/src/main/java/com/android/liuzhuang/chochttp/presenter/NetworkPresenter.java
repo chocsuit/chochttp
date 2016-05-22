@@ -1,19 +1,20 @@
 package com.android.liuzhuang.chochttp.presenter;
 
 import com.android.liuzhuang.chochttplibrary.ChocHttp;
-import com.android.liuzhuang.chochttplibrary.IChocHttpCallback;
+import com.android.liuzhuang.chochttplibrary.ChocHttpListener;
+import com.android.liuzhuang.chochttplibrary.core.ChocConfig;
 import com.android.liuzhuang.chochttplibrary.core.Converter;
 import com.android.liuzhuang.chochttplibrary.request.BaseRequest;
 import com.android.liuzhuang.chochttplibrary.request.KeyValueRequest;
 import com.android.liuzhuang.chochttplibrary.request.Method;
 import com.android.liuzhuang.chochttplibrary.response.BaseResponse;
+import com.android.liuzhuang.chochttplibrary.utils.CheckUtil;
 import com.android.liuzhuang.chochttplibrary.utils.Logger;
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
-import com.google.gson.stream.JsonReader;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -37,10 +38,15 @@ public class NetworkPresenter {
                 .setUrl("http://http-caching-demo.herokuapp.com/?etag=true&cache=true, ")
                 .setMethod(Method.GET)
                 .build();
+        ChocConfig config = new ChocConfig()
+                .setConnectTimeOut(1000)
+                .setRetryTimes(10)
+                .setReadTimeOut(1000);
         ChocHttp chocHttp = new ChocHttp.Builder()
                 .setConverterFactory(new GsonConverterFactory())
+                .setConfig(config)
                 .build();
-        chocHttp.asyncRequest(request, new IChocHttpCallback() {
+        chocHttp.asyncRequest(request, new ChocHttpListener() {
             @Override
             public void onSuccess(BaseResponse rawResponse, Object pojoResponse) {
                 StringBuilder builder = new StringBuilder();
@@ -77,7 +83,7 @@ public class NetworkPresenter {
                 .setMethod(Method.GET)
                 .build();
         ChocHttp chocHttp = new ChocHttp.Builder().build();
-        chocHttp.asyncRequest(request, new IChocHttpCallback() {
+        chocHttp.asyncRequest(request, new ChocHttpListener() {
             @Override
             public void onSuccess(BaseResponse rawResponse, Object pojoResponse) {
                 StringBuilder builder = new StringBuilder();
@@ -136,7 +142,7 @@ public class NetworkPresenter {
         public T convert(String value) {
             Logger.println("========== Converter value ==========\n" + value);
             try {
-                return adapter.fromJson(value);
+                return CheckUtil.isEmpty(value) ? null : adapter.fromJson(value);
             } catch (IOException e) {
                 e.printStackTrace();
             }
